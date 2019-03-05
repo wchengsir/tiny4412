@@ -1,0 +1,118 @@
+busybox制作rootfs：
+1.下载busybox源码  
+$ wget http://www.busybox.net/downloads/busybox-1.30.1.tar.bz2
+$ tar jxvf busybox-1.30.1.tar.bz2 
+$ cd busybox-1.30.1/
+
+2.  配置 busybox
+$ make menuconfig
+配置编译为共享库：BUILD_LIBBUSYBOX
+Settings  --->
+	--- Build Options
+	[ ] Build static binary (no shared libs)  
+
+配置 交叉编译器：CROSS_COMPILER_PREFIX
+Settings  --->
+	--- Build Options
+	(arm-linux-gnueabi-) Cross compiler prefix 
+
+配置根文件系统安装位置：PREFIX
+Settings  --->
+	--- Installation Options ("make install" behavior) 	
+	(./_install) Destination path for 'make install'
+
+配置命令提示符功能 ： FEATURE_EDITING
+Settings  --->
+	--- Library Tuning  
+	[*] Command line editing 
+
+3.编译busybox, 安装文件系统
+编译，安装busybox
+$ exports ARCH=arm
+$ exports CROSS_COMPILE=arm-linux-gnueabi-	
+$ make
+$ make install	
+$ cp busybox-1.30.1/_install/* ./rootfs -rap
+
+复制命令的动态库
+$ cp /opt/gcc-linaro-6.4.1-2018.05-x86_64_arm-linux-gnueabi/lib/ ./rootfs -rap
+$ rm -rf rootfs/lib/*.a
+
+创建其他文件夹
+$ cd rootfs
+$ mkdir dev etc/init.d home proc sys root opt tmp var -p    
+
+创建终端文件
+$ sudo mknod dev/tty1 c 4 1
+$ sudo mknod dev/tty2 c 4 2
+$ sudo mknod dev/tty3 c 4 3
+$ sudo mknod dev/tty4 c 4 4
+$ sudo mknod dev/console c 5 1
+$ sudo mknod dev/null c 1 3
+
+创建etc目录下rcS文件
+$ vim init.d/rcS 
+#!/bin/sh                                                                       
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+runlevel=S
+prevlevel=N
+umask 022
+export PATH runlevel prevlevel
+
+mount -a
+mkdir -p /dev/pts
+mount -t devpts devpts /dev/pts
+#mount -n -t usbfs none /proc/bus/usb
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+mdev -s
+mkdir -p /var/lock
+
+ifconfig lo 127.0.0.1
+#ifconfig eth0 10.238.233.5
+
+/bin/hostname WuCheng
+
+
+创建etc目录下fstab文件
+$ vim fstab
+proc    /proc   proc    defaults 0 0
+tmpfs   /tmp    tmpfs   defaults 0 0
+sysfs   /sys    sysfs   defaults 0 0
+tmpfs   /dev    tmpfs   defaults 0 0
+var     /dev    tmpfs   defaults 0 0
+debugfs /sys/kernel/debug debugfs defaults 0 0
+
+
+创建etc目录下inittab文件
+$ vim inittab
+::sysinit:/etc/init.d/rcS
+console::askfirst:-/bin/sh
+::ctrlaltdel:/sbin/reboot
+::shutdown:/bin/umount -a -r
+::restart:/sbin/init
+
+创建etc目录下profile文件
+$ vim profile
+USER="`id -un`"                                                                 LOGNAME=$USER
+HOSTNAME=`/bin/hostname`
+HOME=/root
+PS1="[$USER@$HOSTNAME \W]\# "
+PATH=$PATH
+LD_LIBRARY_PATH=/lib:/usr/lib:$LD_LIBRARY_PATH
+export USER LOGNAME HOSTNAME HOME PS1 PATH PATH LD_LIBRARY_PATH
+
+添加etc目录下passwd文件
+$ cp /etc/passwd ./
+$ vim passwd 
+root:x:0:0:root:/root:/bin/bash
+
+添加etc目录下group文件
+$ cp /etc/group ./
+$ vim group 
+root:x:0:
+
+添加etc目录下shadow文件
+$ sudo cp /etc/shadow ./
+$ sudo vim shadow 
+root:$6$W.j8tCNq$9Hb6IbSbh7HvWhQsIoYMv/RY4eLw/91EFWgiY6xhgKg/GRqDiCP8RvvQ3OOE16KmumIhegqmImGkJ6gntbKeQ0:17339:0:99999:7:::
