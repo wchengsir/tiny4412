@@ -22,3 +22,9 @@ git pull origin
 git remote add origin git@github.com:wchengsir/tiny4412.git
 git push -u origin master
 git push origin --tags
+
+make ARCH=arm exynos_defconfig
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- LOADADDR=0X40008000
+
+arch/arm/boot/zImage
+arch/arm/boot/dts/exynos4412-tiny4412.dtb
