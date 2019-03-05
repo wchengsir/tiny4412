@@ -1,0 +1,24 @@
+sudo apt-get install git
+git config --global user.name "wucheng"
+git config --global user.email "1518672323@qq.com"
+
+mkdir tiny4412
+tar xvf linux-5.0.tar.xz -C tiny4412/
+cd tiny4412/
+
+ssh-keygen -t rsa -C "1518672323@qq.com"
+在 GitHub 里添加 SSH Key的公钥
+
+git init
+git add -A
+git commit -m "add files"
+git log --pretty=oneline
+git tag v1 xxxxxxxxxxxxx
+github Create repository
+gain git@github.com:wchengsir/tiny4412.git
+git clone https://github.com/wchengsir/tiny4412.git
+git pull origin
+
+git remote add origin git@github.com:wchengsir/tiny4412.git
+git push -u origin master
+git push origin --tags
