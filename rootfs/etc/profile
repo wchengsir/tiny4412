@@ -1,0 +1,7 @@
+USER="`id -un`"                                                                 LOGNAME=$USER
+HOSTNAME=`/bin/hostname`
+HOME=/root
+PS1="[$USER@$HOSTNAME \W]\# "
+PATH=$PATH
+LD_LIBRARY_PATH=/lib:/usr/lib:$LD_LIBRARY_PATH
+export USER LOGNAME HOSTNAME HOME PS1 PATH PATH LD_LIBRARY_PATH
