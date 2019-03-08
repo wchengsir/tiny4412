@@ -43,6 +43,9 @@ git rm --cached -r useless
 git commit -m "remove directory from remote repository"
 git push
 
+github上传空文件夹
+find . -type d -empty -exec touch {}/.gitignore \;
+find . -type f -name '.gitignore' -delete
 
 make ARCH=arm exynos_defconfig
 make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- LOADADDR=0X40008000
