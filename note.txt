@@ -16,12 +16,33 @@ git log --pretty=oneline
 git tag v1 xxxxxxxxxxxxx
 github Create repository
 gain git@github.com:wchengsir/tiny4412.git
+
 git clone https://github.com/wchengsir/tiny4412.git
 git pull origin
 
 git remote add origin git@github.com:wchengsir/tiny4412.git
 git push -u origin master
 git push origin --tags
+如果出现上传不成功，可能是因为你远程仓库已经存在文件，和你本地仓库文件不一致，或者你本地仓库的文件不是最新的，这个时候，你需要执行下面这行命令：
+$ git pull origin master
+将远程仓库的文件重新下载到本地仓库，然后再次执行
+$ git push origin master 
+
+Git 如何删除远程服务器文件同时保留本地文件
+在上传工程到git上时，有时候会把本地的一些eclipse配置文件传到服务器上，这时你先删除本地，再同步服务器，显然是不合理的。git提供了一个好的解决方法，可以直接删除服务器文件，同时不影响本地文件，命令如下
+
+1.删除服务器文件,本地保留
+
+此时github上已经不存在了
+
+2.删除远程useless 文件夹,本地保留
+
+一定要注意，删除文件夹要使用-r 参数
+
+git rm --cached -r useless
+git commit -m "remove directory from remote repository"
+git push
+
 
 make ARCH=arm exynos_defconfig
 make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- LOADADDR=0X40008000
