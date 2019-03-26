@@ -12,6 +12,7 @@
 #include "exynos4412.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/usb4640/usb4640.h>
+#include <dt-bindings/input/input.h>
 
 / {
 	model = "FriendlyARM TINY4412 board based on Exynos4412";
@@ -72,7 +73,41 @@
        		    compatible = "smsc,usb4640";
        		    reset-gpios = <&gpm2 4 GPIO_ACTIVE_LOW>;
        	            initial-mode = <USB4640_MODE_HUB>;
-   	};	
+   	};
+	
+	gpio_keys {
+                compatible = "gpio-keys";
+
+                k1 {
+                        label = "K1";
+                        gpios = <&gpx3 2 GPIO_ACTIVE_LOW>;
+                        linux,code = <KEY_1>;
+                        wakeup-source;
+                };
+
+                k2 {
+                        label = "K2";
+                        gpios = <&gpx3 3 GPIO_ACTIVE_LOW>;
+                        linux,code = <KEY_2>;
+                        wakeup-source;
+                };
+
+                k3 {
+                        label = "K3";
+                        gpios = <&gpx3 4 GPIO_ACTIVE_LOW>;
+                        linux,code = <KEY_3>;
+                        wakeup-source;
+                };
+
+                k4 {
+                        label = "K4";
+                        gpios = <&gpx3 5 GPIO_ACTIVE_LOW>;
+                        linux,code = <KEY_4>;
+                        wakeup-source;
+                };
+
+        };
+
 };
 
 &rtc {
