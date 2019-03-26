@@ -1,0 +1,170 @@
+﻿目标板[底板]：Tiny4412SDK - 1611                               
+目标板[核心板]： Tiny4412 - 1412                                
+Tiny4412-SDK1611开发板（1GB DDR内存 + 4GB eMMC闪存）              
+DDR3-1333 (9-9-9)，其往回兼容DDR3-1066(7-7-7), DDR3-800(6-6-6)      
+
+按键低电平有效
+K1  		XEINT26			GPX3_2
+K2			XEINT27   	GPX3_3
+K3			XEINT28			GPX3_4
+K4			XEINT29			GPX3_5
+
+exynos4412-tiny4412.dts
+	exynos4412.dtsi
+		exynos4.dtsi
+		exynos4-cpu-thermal.dtsi
+		exynos4412-pinctrl.dtsi
+		
+gpx3: gpx3 {
+        gpio-controller;
+        #gpio-cells = <2>;
+
+        interrupt-controller;
+        #interrupt-cells = <2>;
+};		  
+
+参考：arch/arm/boot/dts/exynos4210-origen.dts
+
+#include <dt-bindings/input/input.h>
+
+gpio_keys {
+                compatible = "gpio-keys";
+
+                k1 {
+                        label = "K1";
+                        gpios = <&gpx3 2 GPIO_ACTIVE_LOW>;
+                        linux,code = <KEY_1>;
+                        wakeup-source;
+                };
+
+                k2 {
+                        label = "K2";
+                        gpios = <&gpx3 3 GPIO_ACTIVE_LOW>;
+                        linux,code = <KEY_2>;
+                        wakeup-source;
+                };
+
+                k3 {
+                        label = "K3";
+                        gpios = <&gpx3 4 GPIO_ACTIVE_LOW>;
+                        linux,code = <KEY_3>;
+                        wakeup-source;
+                };
+
+                k4 {
+                        label = "K4";
+                        gpios = <&gpx3 5 GPIO_ACTIVE_LOW>;
+                        linux,code = <KEY_4>;
+                        wakeup-source;
+                };
+
+        };
+
+drivers/input/keyboard/gpio_keys.c
+
+
+vmuser@Linux-host:linux-5.0$ make dtbs
+  DTC     arch/arm/boot/dts/exynos4412-tiny4412.dtb
+Error: arch/arm/boot/dts/exynos4412-tiny4412.dts:83.39-40 syntax error
+FATAL ERROR: Unable to parse input tree
+make[1]: *** [arch/arm/boot/dts/exynos4412-tiny4412.dtb] 错误 1
+make: *** [dtbs] 错误 2
+
+原因：未添加关于KEY CODE头文件
+
+setenv serverip 192.168.1.106
+setenv bootargs noinitrd root=/dev/nfs rw nfsroot=192.168.1.106:/home/vmuser/tiny4412/rootfs ethmac=1C:6F:65:34:51:7E ip=192.168.1.155:192.168.1.106:192.168.1.1:255.255.255.0::eth0:off console=ttySAC0,115200 init=/linuxrc
+
+
+/*
+ * 按键测试用例：input_keys.c
+ * 编译：arm-linux-gnueabi-gcc --static input_keys.c -o keys_app
+ * 运行：./keys_app /dev/input/event
+ */
+#include <stdio.h>
+#include <linux/input.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int main(int argc,char *argv[]){
+        if(argc != 2){
+                printf("Usage : %s </dev/input/eventx> \r\n",argv[0]);
+                return -1;
+        }
+
+        /* 1. 打开输入设备文件 */
+        int fd = open(argv[1],O_RDWR);
+        int cnt = 0;
+        struct input_event tBtnsEvent;
+
+        while(1){
+                /* 2. 读取输入设备文件内容,如果没有内容则会发生堵塞 */
+                cnt = read(fd,&tBtnsEvent,sizeof(struct input_event));
+                if(cnt < 0){
+                        printf("APP Error : Read is Failed ! \r\n");
+                        return -1;
+                }
+                printf("cnt : %d\r\n",cnt);
+
+                /* 3. 打印按键信息 */
+                switch(tBtnsEvent.code){
+                        case KEY_1:{
+                                printf("-----------k1 : %d\r\n",tBtnsEvent.value);
+                                break;
+                        }
+                        case KEY_2:{
+                                printf("-----------k2 : %d\r\n",tBtnsEvent.value);
+                                break;
+                        }
+                        case KEY_3:{
+                                printf("-----------k3 : %d\r\n",tBtnsEvent.value);
+                                break;
+                        }
+                        case KEY_4:{
+                                printf("-----------k4 : %d\r\n",tBtnsEvent.value);
+                                break;
+                        }
+                        default:{
+                                //printf("APP Error : Read is not mean ! code : %d \r\n",tBtnsEvent.code);
+                                break;
+                        }
+                }
+                usleep(10000);
+        }
+        close(fd);
+
+        return 0;
+}
+
+
+执行时出现-/bin/sh: ./keys_app: not found
+编译时加上：--static
+
+打印结果：
+[root@WuCheng home]# ./keys_app /dev/input/event0 
+cnt : 16
+-----------k1 : 1
+cnt : 16
+cnt : 16
+-----------k1 : 0
+cnt : 16
+cnt : 16
+-----------k2 : 1
+cnt : 16
+cnt : 16
+-----------k2 : 0
+cnt : 16
+cnt : 16
+-----------k3 : 1
+cnt : 16
+cnt : 16
+-----------k3 : 0
+cnt : 16
+cnt : 16
+-----------k4 : 1
+cnt : 16
+cnt : 16
+-----------k4 : 0
+                           
