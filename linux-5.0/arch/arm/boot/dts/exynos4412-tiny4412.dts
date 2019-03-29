@@ -125,7 +125,7 @@
 &serial_0 {
 	status = "okay";
 };
-
+	
 &serial_1 {
 	status = "okay";
 };
@@ -165,3 +165,10 @@
 &hsotg {
     status = "okay";
 };  
+
+&pwm {
+    pinctrl-0 = <&pwm0_out &pwm1_out>;
+    pinctrl-names = "default";
+    samsung,pwm-outputs = <0>, <1>;
+    status = "okay";
+};
